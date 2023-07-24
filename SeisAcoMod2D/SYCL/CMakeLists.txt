@@ -23,11 +23,13 @@ else()
     message(STATUS "Using default MPI_HOME=${MPI_HOME}")
 endif()
 
+option(SYCL_CPU                "Build for SYCL CPU backend"   OFF)
 option(GPU_AOT                 "Build AOT for Intel GPU"      OFF)
 option(USE_NVIDIA_BACKEND      "Build for NVIDIA backend"     OFF)
 option(USE_AMDHIP_BACKEND      "Build for AMD HIP backend"    OFF)
 option(USE_SM                  "Build for specific SM"        OFF)
 
+set(SYCL_CPU_CXX_FLAGS  " -cxx=icpx   -g -O3 -std=c++17 -fsycl -fopenmp ")
 set(INTEL_GPU_CXX_FLAGS  " -cxx=icpx    -O2 -std=c++17 -fsycl -fopenmp ")
 set(NVIDIA_GPU_CXX_FLAGS " -cxx=clang++ -O3 -std=c++17 -fsycl ")
 set(AMD_GPU_CXX_FLAGS    " -cxx=clang++ -O3 -std=c++17 -fsycl ")
@@ -71,6 +73,15 @@ elseif(USE_AMDHIP_BACKEND)
         set(CMAKE_CXX_FLAGS "${AMD_GPU_CXX_FLAGS}") # Default flags for AMD backend
     endif()
     string(APPEND CMAKE_CXX_FLAGS " -fsycl-targets=amdgcn-amd-amdhsa -Xsycl-target-backend --offload-arch=${USE_AMDHIP_BACKEND} ")
+elseif(SYCL_CPU)
+    message(STATUS "Enabling SYCL CPU backend")
+    if(USE_DEFAULT_FLAGS)
+        set(CMAKE_CXX_FLAGS "${SYCL_CPU_CXX_FLAGS}") # Default flags for SYCL CPU backend
+    endif()
+    string(APPEND CMAKE_CXX_FLAGS " -fsycl-targets=spir64_x86_64 -Xs \"-device=cpu\" ")
+
+else()
+    message(FATAL_ERROR "You have to specify the backend on which you will run by defining 'ON' one of the following variables: SYCL_CPU, GPU_AOT, USE_NVIDIA_BACKEND, USE_AMDHIP_BACKEND")
 endif()
 
 set(SOURCES
