@@ -94,9 +94,14 @@ class LangHandle {
 
 
 
+#if defined(RUN_ON_GPU)
+            dht_ = new sycl::device(sycl::gpu_selector_v);
+#elif defined(RUN_ON_CPU)
+            dht_ = new sycl::device(sycl::cpu_selector_v);
+#else
+    #error No variable RUN_ON_GPU nor RUN_ON_CPU defined
+#endif
 
-            //dht_ = new sycl::device(sycl::gpu_selector_v); 
-            dht_ = new sycl::device(sycl::gpu_selector_v); 
 #ifdef DEVICE_TIMER  
             start = get_time_now();
 #endif    
@@ -236,9 +241,14 @@ class LangHandle {
 #endif            
 
 
+#if defined(RUN_ON_GPU)
+            dht_ = new sycl::device(sycl::gpu_selector_v);
+#elif defined(RUN_ON_CPU)
+            dht_ = new sycl::device(sycl::cpu_selector_v);
+#else
+    #error No variable RUN_ON_GPU nor RUN_ON_CPU defined
+#endif
 
-
-            dht_ = new sycl::device(sycl::gpu_selector_v); 
 #ifdef DEVICE_TIMER  
             start = get_time_now();
 #endif    
@@ -335,7 +345,15 @@ class LangHandle {
 
     public:
         LangHandle(Timer* timer): timer_(timer) {
-            dht_ = new sycl::device(sycl::gpu_selector_v); 
+
+#if defined(RUN_ON_GPU)
+            dht_ = new sycl::device(sycl::gpu_selector_v);
+#elif defined(RUN_ON_CPU)
+            dht_ = new sycl::device(sycl::cpu_selector_v);
+#else
+    #error No variable RUN_ON_GPU nor RUN_ON_CPU defined
+#endif
+
 #ifdef DEVICE_TIMER  
             start = get_time_now();
 #endif    

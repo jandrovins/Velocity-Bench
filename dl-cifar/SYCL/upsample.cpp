@@ -136,7 +136,14 @@ void UpsamplerController::execute() {
     Timer* timer = new Timer();            
     LangHandle *langHandle = new LangHandle(timer);
 
+#if defined(RUN_ON_GPU)
     sycl::device* dht = new sycl::device(sycl::gpu_selector_v);
+#elif defined(RUN_ON_CPU)
+    sycl::device* dht = new sycl::device(sycl::cpu_selector_v);
+#else
+    #error No variable RUN_ON_GPU nor RUN_ON_CPU defined
+#endif
+
     sycl::context context(*dht);
     sycl::queue sycl_queue(context, *dht);
 

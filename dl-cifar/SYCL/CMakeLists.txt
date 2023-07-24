@@ -29,11 +29,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)  # Enable modern C++ standards
 set(CMAKE_CXX_EXTENSIONS OFF)        # Use -std, not -gnu
 
 
+option(SYCL_CPU                "Build for SYCL CPU backend"        OFF)
 option(GPU_AOT                 "Build AOT for Intel GPU"      OFF)
 option(USE_NVIDIA_BACKEND      "Build for NVIDIA backend"     OFF)
 option(USE_AMDHIP_BACKEND      "Build for AMD HIP backend"    OFF)
 option(DEVICE_TIMER            "Build using Device Timer" OFF)
 
+set(SYCL_CPU_CXX_FLAGS   " -O3 -fsycl -ffast-math -DMKL_ILP64 ")
 set(INTEL_GPU_CXX_FLAGS  " -O3 -fsycl -ffast-math -DMKL_ILP64")
 set(NVIDIA_GPU_CXX_FLAGS " -O3 -fsycl -ffast-math -DUSE_CUBLAS")
 set(AMD_GPU_CXX_FLAGS    " -O3 -fsycl -ffast-math -DUSE_ROCBLAS -D__HIP_PLATFORM_AMD__")
@@ -127,7 +129,6 @@ else()
     set(USE_DEFAULT_FLAGS OFF)
 endif()
 
-add_compile_options(-DRUN_ON_GPU)
 #add_compile_options(-DKERNEL_USE_PROFILE "0")
 if(DEVICE_TIMER)
     message(STATUS "Enabling Device Timer")
@@ -158,12 +159,16 @@ if(GPU_AOT)
         message(STATUS "Using custom AOT compilation flag ${GPU_AOT}")
         string(APPEND CMAKE_CXX_FLAGS " ${GPU_AOT} ") # User should be aware of advanced AOT compilation flags
     endif()
+
+    string(APPEND CMAKE_CXX_FLAGS " -DRUN_ON_GPU ")
 elseif(USE_NVIDIA_BACKEND)    
     message(STATUS "Enabling NVIDIA backend")
     if(USE_DEFAULT_FLAGS)
         set(CMAKE_CXX_FLAGS "${NVIDIA_GPU_CXX_FLAGS}") # Default flags for NV backend
     endif()
     string(APPEND CMAKE_CXX_FLAGS " -fsycl-targets=nvidia_gpu_sm_${USE_SM}")
+
+    string(APPEND CMAKE_CXX_FLAGS " -DRUN_ON_GPU ")
 elseif(USE_AMD_BACKEND)
     message(STATUS "Enabling AMD backend")
     message(STATUS "Enabling AMD HIP backend for ${USE_AMD_ARCH} AMD architecture")
@@ -173,6 +178,18 @@ elseif(USE_AMD_BACKEND)
     #string(APPEND CMAKE_CXX_FLAGS " -fsycl-targets=amd_gpu_gfx${USE_AMD_ARCH}")
     #string(APPEND CMAKE_CXX_FLAGS " -fsycl-targets=amdgcn-amd-amdhsa -Xsycl-target-backend --offload-arch=${USE_AMDHIP_BACKEND}  ")
     string(APPEND CMAKE_CXX_FLAGS " -fsycl-targets=amdgcn-amd-amdhsa -Xsycl-target-backend --offload-arch=${USE_AMD_ARCH}  ")
+
+    string(APPEND CMAKE_CXX_FLAGS " -DRUN_ON_GPU ")
+elseif(SYCL_CPU)
+    message(STATUS "Enabling SYCL CPU backend")
+    if(USE_DEFAULT_FLAGS)
+        set(CMAKE_CXX_FLAGS "${SYCL_CPU_CXX_FLAGS}") # Default flags for SYCL CPU backend
+    endif()
+    string(APPEND CMAKE_CXX_FLAGS " -fsycl-targets=spir64_x86_64 -Xs \"--device=cpu\" ")
+
+    string(APPEND CMAKE_CXX_FLAGS " -DRUN_ON_CPU ")
+else()
+    message(FATAL_ERROR "You have to specify the backend on which you will run by defining 'ON' one of the following variables: SYCL_CPU, GPU_AOT, USE_NVIDIA_BACKEND, USE_AMDHIP_BACKEND")
 endif()
 
 # Output the compiler flags that were constructed for visual inspection
