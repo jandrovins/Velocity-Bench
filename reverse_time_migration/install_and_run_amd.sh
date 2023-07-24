@@ -1,5 +1,13 @@
 #!/bin/bash
 
+export RTM_DATA=/gpfs/projects/bsc15/bsc15889/Velocity-Bench/reverse_time_migration/data
+echo "You probably need to edit variable RTM_DATA, currently equals $RTM_DATA"
+
+if [ ! -d "$RTM_DATA" ]; then
+    echo "Directory $RTM_DATA DOES NOT exist - you need to download reverse_time_migration data input using prerequisites/data-download/download_bp_data_iso.sh script"
+    exit 1
+fi
+
 module load ninja/1.11.1 gcc/10.2.0 cmake/3.26.3 oneapi/2023.2.0
 . /gpfs/apps/AMD/ONEAPI/2023.0.0.25337/setvars.sh
 
