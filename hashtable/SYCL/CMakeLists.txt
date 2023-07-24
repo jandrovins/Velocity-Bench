@@ -16,11 +16,13 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-option(GPU_AOT                 "Build AOT for Intel GPU"      OFF)
-option(USE_NVIDIA_BACKEND      "Build for NVIDIA backend"     OFF)
-option(USE_AMDHIP_BACKEND      "Build for AMD HIP backend"    OFF)
-option(USE_SM                  "Build for specific SM"        OFF)
+option(SYCL_CPU                "Build for SYCL CPU backend"        OFF)
+option(GPU_AOT                 "Build AOT for Intel GPU"           OFF)
+option(USE_NVIDIA_BACKEND      "Build for NVIDIA backend"          OFF)
+option(USE_AMDHIP_BACKEND      "Build for AMD HIP backend"         OFF)
+option(USE_SM                  "Build for specific SM"             OFF)
 
+set(SYCL_CPU_CXX_FLAGS   " -O3 -fsycl -Wall -Wextra -Wno-unused-parameter ")
 set(INTEL_GPU_CXX_FLAGS  " -O2 -fsycl -Wall -Wextra -Wno-unused-parameter ")
 set(NVIDIA_GPU_CXX_FLAGS " -O3 -fsycl -Wall -Wextra -Wno-unused-parameter ")
 set(AMD_GPU_CXX_FLAGS    " -O3 -fsycl -Wall -Wextra -Wno-unused-parameter ")
@@ -64,6 +66,15 @@ elseif(USE_AMDHIP_BACKEND)
         set(CMAKE_CXX_FLAGS "${AMD_GPU_CXX_FLAGS}") # Default flags for AMD backend (gfx90a for MI250)
     endif()
     string(APPEND CMAKE_CXX_FLAGS " -fsycl-targets=amdgcn-amd-amdhsa -Xsycl-target-backend --offload-arch=${USE_AMDHIP_BACKEND} ")
+elseif(SYCL_CPU)
+    message(STATUS "Enabling SYCL CPU backend")
+    if(USE_DEFAULT_FLAGS)
+        set(CMAKE_CXX_FLAGS "${SYCL_CPU_CXX_FLAGS}") # Default flags for SYCL CPU backend
+    endif()
+    string(APPEND CMAKE_CXX_FLAGS " -fsycl-targets=spir64_x86_64 ")
+
+else()
+    message(FATAL_ERROR "You have to specify the backend on which you will run by defining 'ON' one of the following variables: SYCL_CPU, GPU_AOT, USE_NVIDIA_BACKEND, USE_AMDHIP_BACKEND")
 endif()
 
 set(SOURCES
