@@ -10,4 +10,4 @@ cd build_amd
 
 CXX=icpx cmake -DSYCL_CPU=ON ..
 make -j
-taskset -c 0-64 ./hashtable_sycl --no-verify
+QS_DEVICE=CPU ./qs -i ../../Examples/AllScattering/scatteringOnly.inp

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-module load ninja/1.11.1 gcc/10.2.0 oneapi/2023.2.0
+module load ninja/1.11.1 gcc/10.2.0 cmake/3.26.3 oneapi/2023.2.0
 . /gpfs/apps/AMD/ONEAPI/2023.0.0.25337/setvars.sh
 
 
