@@ -58,34 +58,39 @@ namespace dl_infra {
             if (!handle) throw std::runtime_error("handle is nullptr.");
 
         #ifdef DNNL_WITH_SYCL
+            bool is_cpu_sycl = (DNNL_CPU_RUNTIME == DNNL_RUNTIME_SYCL
+                    && eng.get_kind() == dnnl::engine::kind::cpu);
             bool is_gpu_sycl = (DNNL_GPU_RUNTIME == DNNL_RUNTIME_SYCL
                     && eng.get_kind() == dnnl::engine::kind::gpu);
-            if (is_gpu_sycl) {
+            if (is_cpu_sycl || is_gpu_sycl) {
                 auto mkind = dnnl::sycl_interop::get_memory_kind(mem);
                 if (mkind == dnnl::sycl_interop::memory_kind::buffer) {
-                    //cout << "Using buffer for copy" << std::endl;
                     auto buffer = dnnl::sycl_interop::get_buffer<uint8_t>(mem);
-                    auto dst = buffer.get_access<::sycl::access::mode::write>();
+                    auto dst = buffer.get_host_access();
                     uint8_t *dst_ptr = dst.get_pointer();
                     if (!dst_ptr)
                         throw std::runtime_error("get_pointer returned nullptr.");
                     for (size_t i = 0; i < size; ++i)
                         dst_ptr[i] = ((uint8_t *)handle)[i];
                 } else {
-                    //cout << "Using USM for copy" << std::endl;
                     assert(mkind == dnnl::sycl_interop::memory_kind::usm);
                     uint8_t *dst_ptr = (uint8_t *)mem.get_data_handle();
                     if (!dst_ptr)
                         throw std::runtime_error("get_data_handle returned nullptr.");
-
-                    auto sycl_queue = dnnl::sycl_interop::get_queue(dnnl::stream(eng));
-                    sycl_queue.memcpy(dst_ptr, handle, size).wait();
-
+                    if (is_cpu_sycl) {
+                        for (size_t i = 0; i < size; ++i)
+                            dst_ptr[i] = ((uint8_t *)handle)[i];
+                    } else {
+                        auto sycl_queue
+                                = dnnl::sycl_interop::get_queue(dnnl::stream(eng));
+                        sycl_queue.memcpy(dst_ptr, handle, size).wait();
+                    }
                 }
-                Tracer::func_end("TensorMgr::write_to_dnnl_memory2");                
-                 
+                Tracer::func_end("TensorMgr::write_to_dnnl_memory2");
+
                 return;
             }
+
         #endif
 
             assert(!"not expected");

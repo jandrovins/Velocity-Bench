@@ -52,7 +52,15 @@ int main(int argc, const char** argv) {
 
         cout << endl << "\t\tWelcome to DL-MNIST workload: SYCL version." << endl << endl;
         cout << "=======================================================================" << endl;
-        sycl::device* dht = new sycl::device(sycl::gpu_selector());
+
+#if defined(RUN_ON_GPU)
+        sycl::device* dht = new sycl::device(sycl::gpu_selector_v);
+#elif defined(RUN_ON_CPU)
+        sycl::device* dht = new sycl::device(sycl::cpu_selector_v);
+#else
+        #error No variable RUN_ON_GPU nor RUN_ON_CPU defined
+#endif
+
 #ifdef DEVICE_TIMER  
         start = get_time_now();
 #endif    
