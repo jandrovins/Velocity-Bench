@@ -126,7 +126,14 @@ SYCLMiner::SYCLMiner(unsigned _index, SYSettings _settings, DeviceDescriptor & /
       m_settings(_settings),
       m_batch_size(_settings.gridSize * _settings.blockSize),
       m_streams_batch_size(_settings.gridSize * _settings.blockSize * _settings.streams),
+#if defined(RUN_ON_GPU)
       m_DefaultQueue(sycl::queue(sycl::gpu_selector_v))
+#elif defined(RUN_ON_CPU)
+      m_DefaultQueue(sycl::queue(sycl::cpu_selector_v))
+#else
+        #error No variable RUN_ON_GPU nor RUN_ON_CPU defined
+#endif
+
 
 {
     DisplayDeviceProperties(m_DefaultQueue.get_device());
@@ -214,7 +221,13 @@ bool SYCLMiner::initEpoch_internal()
                     lightOnHost = true;
             }
 
+#if defined(RUN_ON_GPU)
             cudalog << "Generating DAG + Light(on " << (lightOnHost ? "host" : "GPU")
+#elif defined(RUN_ON_CPU)
+            cudalog << "Generating DAG + Light(on " << (lightOnHost ? "host" : "CPU")
+#else
+        #error No variable RUN_ON_GPU nor RUN_ON_CPU defined
+#endif
                     << ") : " << dev::getFormattedMemory((double)RequiredTotalMemory);
 
             // create buffer for cache
@@ -317,7 +330,13 @@ void SYCLMiner::workLoop()
 
         // Reset miner and stop working
     } catch (cuda_runtime_error const &_e) {
+#if defined(RUN_ON_GPU)
         string _what = "GPU error: ";
+#elif defined(RUN_ON_CPU)
+        string _what = "CPU error: ";
+#else
+        #error No variable RUN_ON_GPU nor RUN_ON_CPU defined
+#endif
         _what.append(_e.what());
         throw std::runtime_error(_what);
     }
@@ -334,7 +353,13 @@ void SYCLMiner::enumDevices(std::map<string, DeviceDescriptor> &_DevicesCollecti
     try {
         int    i = 0;
         size_t freeMem; ///, totalMem;
+#if defined(RUN_ON_GPU)
         std::vector<sycl::device> vDevices({sycl::device(sycl::gpu_selector_v)});
+#elif defined(RUN_ON_CPU)
+        std::vector<sycl::device> vDevices({sycl::device(sycl::cpu_selector_v)});
+#else
+        #error No variable RUN_ON_GPU nor RUN_ON_CPU defined
+#endif
         for (auto &device : vDevices) {
 
             std::string const uniqueId = device.get_info<sycl::info::device::name>();
@@ -347,8 +372,8 @@ void SYCLMiner::enumDevices(std::map<string, DeviceDescriptor> &_DevicesCollecti
             std::cout << "Added device " << uniqueId << "\n";
             deviceDescriptor.name              = uniqueId;
             deviceDescriptor.uniqueId          = uniqueId;
-            deviceDescriptor.type              = DeviceTypeEnum::Gpu; /// get_device_type(uniqueId);
-            deviceDescriptor.syclDetected      = deviceDescriptor.type == DeviceTypeEnum::Gpu ? true : false;
+            deviceDescriptor.type              = DeviceTypeEnum::Cpu; /// get_device_type(uniqueId);
+            deviceDescriptor.syclDetected      = (deviceDescriptor.type == DeviceTypeEnum::Gpu || deviceDescriptor.type ==DeviceTypeEnum::Cpu) ? true : false;
             deviceDescriptor.syclDeviceIndex   = i;
             deviceDescriptor.syclDeviceOrdinal = i;
             deviceDescriptor.syclName          = uniqueId;

@@ -853,7 +853,7 @@ static sycl::uint2 const Keccak_f1600_RC[24] = {
 };
 DEV_INLINE uint64_t as_ulong(sycl::uint2 x)
 {
-    using res_vec_type = sycl::vec<sycl::opencl::cl_ulong, 1>;
+    using res_vec_type = sycl::vec<sycl::cl_ulong, 1>;
     res_vec_type y     = x.as<res_vec_type>();
     return y[0];
 }

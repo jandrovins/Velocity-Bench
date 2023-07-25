@@ -63,7 +63,8 @@ namespace eth
 enum class DeviceTypeEnum {
     Unknown,
     Gpu,
-    Accelerator
+    Accelerator,
+    Cpu
 };
 
 enum class DeviceSubscriptionTypeEnum {
