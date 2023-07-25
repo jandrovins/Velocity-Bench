@@ -62,7 +62,7 @@ endif()
 # -DCMAKE_CXX_FLAGS=" -blah -blah " overrides the default flags
 
 set(USE_DEFAULT_FLAGS ON)
-set(INTEL_CPU_CXX_FLAGS  " -O2 -fsycl -Wall -Wextra -Wno-unused-parameter ") 
+set(INTEL_CPU_CXX_FLAGS  " -O3 -fsycl -Wall -Wextra -Wno-unused-parameter ") 
 set(INTEL_GPU_CXX_FLAGS  " -O2 -fsycl -ffast-math")
 set(NVIDIA_GPU_CXX_FLAGS " -O3 -fsycl -ffast-math ")
 set(AMD_GPU_CXX_FLAGS    " -O3 -fsycl -ffast-math ")
@@ -101,7 +101,7 @@ elseif(USE_INTEL_CPU)
     if(USE_DEFAULT_FLAGS)   
 	    set(CMAKE_CXX_FLAGS "${INTEL_CPU_CXX_FLAGS}")				    
     endif()
-    string(APPEND CMAKE_CXX_FLAGS " -fsycl-targets=spir64_x86_64 -Xsycl-target-backend \"--march=avx512\"  ")
+    string(APPEND CMAKE_CXX_FLAGS " -fsycl-targets=spir64_x86_64 -Xsycl-target-backend \"--device=cpu\"  ")
     # string(APPEND CMAKE_CXX_FLAGS "  -ffast-math -mprefer-vector-width=512 -mfma -fsycl-targets=spir64_x86_64--linux  \"-device avx512\"  ")
 endif()
 

@@ -173,7 +173,7 @@ elseif(SYCL_CPU)
     if(USE_DEFAULT_FLAGS)
         set(CMAKE_CXX_FLAGS "${SYCL_CPU_CXX_FLAGS}") # Default flags for SYCL CPU backend
     endif()
-    string(APPEND CMAKE_CXX_FLAGS " -fsycl-targets=spir64_x86_64  -Xs \"-device=cpu\" ")
+    string(APPEND CMAKE_CXX_FLAGS " -fsycl-targets=spir64_x86_64  -Xs \"--device=cpu\" ")
 
 else()
     message(FATAL_ERROR "You have to specify the backend on which you will run by defining 'ON' one of the following variables: SYCL_CPU, GPU_AOT, USE_NVIDIA_BACKEND, USE_AMDHIP_BACKEND")
